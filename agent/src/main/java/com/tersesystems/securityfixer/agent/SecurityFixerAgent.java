@@ -1,6 +1,7 @@
 package com.tersesystems.securityfixer.agent;
 
-import com.tersesystems.securityfixer.MySystemInterceptor;
+import com.tersesystems.securityfixer.bootstrap.MySystemInterceptor;
+
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.agent.builder.AgentBuilder;
 import net.bytebuddy.description.NamedElement;
@@ -14,6 +15,10 @@ import java.io.IOException;
 import java.lang.instrument.Instrumentation;
 import java.util.jar.JarFile;
 
+/**
+ * Sets up the Java Instrumentation API so we can redefine java.lang.System.  Either premain or agentmain is
+ * called, depending on the instrumentation install path.
+ */
 public class SecurityFixerAgent {
 
     public static void premain(String arg, Instrumentation inst) {
@@ -24,50 +29,74 @@ public class SecurityFixerAgent {
         install(arg, inst);
     }
 
-    static void install(String arg, Instrumentation inst)  {
-        try {
-            File file = new File(arg).getCanonicalFile();
-            if (! file.exists()) {
-                throw new IllegalStateException(arg + " does not exist");
+    /**
+     * Installs the agent builder to the instrumentation API.
+     *
+     * @param arg the path to the interceptor JAR file.
+     * @param inst instrumentation instance.
+     */
+    static void install(String arg, Instrumentation inst) {
+        appendInterceptorToBootstrap(arg, inst);
+        AgentBuilder agentBuilder = createAgentBuilder(inst);
+        agentBuilder.installOn(inst);
+    }
 
+    /**
+     * Appends the JAR file at "arg" to the bootstrap classloader search.
+     *
+     * @param arg the path to the interceptor JAR file.
+     * @param inst instrumentation instance.
+     */
+    private static void appendInterceptorToBootstrap(String arg, Instrumentation inst) {
+        try {
+            if (arg == null) {
+                String msg = "You must specify path to the interceptor JAR as a javaagent argument!";
+                throw new IllegalStateException(msg);
             }
 
-            if (! file.isFile()) {
+            File file = new File(arg).getCanonicalFile();
+            if (!file.exists()) {
+                throw new IllegalStateException(arg + " does not exist");
+            }
+
+            if (!file.isFile()) {
                 throw new IllegalStateException(arg + " is not a file");
 
             }
-            if (! file.canRead()) {
-                throw new IllegalStateException(arg + "cannot be read");
+            if (!file.canRead()) {
+                throw new IllegalStateException(arg + " cannot be read");
 
             }
-
             JarFile jarFile = new JarFile(file);
             inst.appendToBootstrapClassLoaderSearch(jarFile);
-
-            AgentBuilder agentBuilder = createAgentBuilder(inst);
-            agentBuilder.installOn(inst);
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
     }
 
+    /**
+     * Creates the AgentBuilder that will redefine the System class.
+     * @param inst instrumentation instance.
+     * @return an agent builder.
+     */
     private static AgentBuilder createAgentBuilder(Instrumentation inst) {
-        final File folder = new File("bootstrap");
-        folder.mkdir();
 
+        // Find me a class called "java.lang.System"
         final ElementMatcher.Junction<NamedElement> systemType = ElementMatchers.named("java.lang.System");
-        AgentBuilder.Transformer transformer =
-                (b, typeDescription) -> b.method(ElementMatchers.named("setSecurityManager"))
-                .intercept(MethodDelegation.to(MySystemInterceptor.class));
 
-        ByteBuddy byteBuddy = new ByteBuddy().with(Implementation.Context.Disabled.Factory.INSTANCE);
+        // And then find a method called setSecurityManager and tell MySystemInterceptor to
+        // intercept it (the method binding is smart enough to take it from there)
+        final AgentBuilder.Transformer transformer =
+                (b, typeDescription) -> b.method(ElementMatchers.named("setSecurityManager"))
+                        .intercept(MethodDelegation.to(MySystemInterceptor.class));
+
+        // Disable a bunch of stuff and turn on redefine as the only option
+        final ByteBuddy byteBuddy = new ByteBuddy().with(Implementation.Context.Disabled.Factory.INSTANCE);
         final AgentBuilder agentBuilder = new AgentBuilder.Default()
-                .enableBootstrapInjection(folder, inst)
                 .withByteBuddy(byteBuddy)
                 .withInitializationStrategy(AgentBuilder.InitializationStrategy.NoOp.INSTANCE)
                 .withRedefinitionStrategy(AgentBuilder.RedefinitionStrategy.REDEFINITION)
                 .withTypeStrategy(AgentBuilder.TypeStrategy.Default.REDEFINE)
-                //.withListener(new AgentBuilder.Listener.StreamWriting(System.out))
                 .type(systemType)
                 .transform(transformer);
 

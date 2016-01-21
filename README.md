@@ -2,6 +2,8 @@
 
 Uses Byte Buddy to override the behavior of `System.setSecurityManager`.
 
+NOTE: This is a demo, not a real security implementation.  For example, `System.getSecurityManager` isn't intercepted!  
+
 ## Compiling
 
 ```

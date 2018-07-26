@@ -12,9 +12,17 @@ mvn clean compile package
 
 ## Running
 
-A little awkward.  I don't know how to get Maven exec to do anything useful.  Note that the intercepter has to be on the bootstrap classpath, so
-it must be packaged seperately from the agent:
+A little awkward.  Thanks to https://stackoverflow.com/questions/40795399/exception-on-invocation-of-java-agent-instrumented-via-bytebuddy I got Maven working.
+  
+Note that the intercepter has to be on the bootstrap classpath, so it must be packaged seperately from the agent:
 
+```bash
+java -javaagent:agent/target/securityfixer-agent-1.0-SNAPSHOT.jar=bootstrap/target/securityfixer-bootstrap-1.0-SNAPSHOT.jar \
+    -jar example/target/securityfixer-example-1.0-SNAPSHOT.jar
 ```
-java -javaagent:agent/target/securityfixer-agent-1.0-SNAPSHOT.jar=bootstrap/target/securityfixer-bootstrap-1.0-SNAPSHOT.jar securityfixer.Main
-```
+
+You can use the attached `run.sh` script.
+
+## Problems
+
+For some reason, the static method override stops working in later versions of ByteBuddy, i.e. 1.4.1 or later.  I have not tracked down why exactly.

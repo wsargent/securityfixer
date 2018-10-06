@@ -2,7 +2,10 @@ package com.tersesystems.securityfixer.agent;
 
 import java.io.*;
 import java.lang.instrument.Instrumentation;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -13,13 +16,16 @@ import net.bytebuddy.agent.builder.AgentBuilder.Listener;
 import net.bytebuddy.agent.builder.AgentBuilder.RedefinitionStrategy;
 import net.bytebuddy.agent.builder.AgentBuilder.TypeStrategy;
 import net.bytebuddy.asm.Advice;
+
+import static java.nio.file.Files.*;
+import static java.nio.file.StandardOpenOption.DELETE_ON_CLOSE;
 import static net.bytebuddy.dynamic.ClassFileLocator.CLASS_FILE_EXTENSION;
 import static net.bytebuddy.matcher.ElementMatchers.*;
 import net.bytebuddy.matcher.StringMatcher;
 
 public class SecurityFixerAgent {
 
-    private static final List<Class<?>> BOOTSTRAP_CLASSES = Arrays.asList(
+    private static final List<Class<?>> BOOTSTRAP_CLASSES = Collections.singletonList(
             MySystemInterceptor.class
     );
 
@@ -46,16 +52,16 @@ public class SecurityFixerAgent {
 
     private static void injectBootstrapClasses(Instrumentation instrumentation) {
         try {
-            File jarFile = File.createTempFile(SecurityFixerAgent.class.getSimpleName(), ".jar");
-            jarFile.deleteOnExit();
-            try (JarOutputStream jarOutputStream = new JarOutputStream(new BufferedOutputStream(new FileOutputStream(jarFile)))) {
+            Path jarFile = createTempFile(SecurityFixerAgent.class.getSimpleName(), ".jar");
+            jarFile.toFile().deleteOnExit();
+            try (JarOutputStream jarOutputStream = new JarOutputStream(new BufferedOutputStream(newOutputStream(jarFile)))) {
                 for (Class<?> bootstrapClass : BOOTSTRAP_CLASSES) {
                     String klassPath = classFileFullname(bootstrapClass);
                     jarOutputStream.putNextEntry(new JarEntry(klassPath));
                     jarOutputStream.write(readFully(bootstrapClass.getClassLoader().getResourceAsStream(klassPath)));
                 }
             }
-            instrumentation.appendToBootstrapClassLoaderSearch(new JarFile(jarFile));
+            instrumentation.appendToBootstrapClassLoaderSearch(new JarFile(jarFile.toFile()));
         } catch (IOException exception) {
             throw new IllegalStateException("Cannot write jar file to disk", exception);
         }
@@ -66,8 +72,8 @@ public class SecurityFixerAgent {
     }
 
     private static byte[] readFully(InputStream input) throws IOException {
-        byte[] buffer = new byte[8192];
         try (ByteArrayOutputStream output = new ByteArrayOutputStream()) {
+            byte[] buffer = new byte[8192];
             int bytesRead;
             while ((bytesRead = input.read(buffer)) != -1) {
                 output.write(buffer, 0, bytesRead);

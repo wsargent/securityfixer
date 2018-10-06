@@ -1,4 +1,4 @@
 
-java -javaagent:agent/target/securityfixer-agent-1.0-SNAPSHOT.jar=bootstrap/target/securityfixer-bootstrap-1.0-SNAPSHOT.jar \
-    -jar example/target/securityfixer-example-1.0-SNAPSHOT.jar
+java -javaagent:agent/target/securityfixer-agent-2.0-SNAPSHOT.jar \
+    -jar example/target/securityfixer-example-2.0-SNAPSHOT.jar
 

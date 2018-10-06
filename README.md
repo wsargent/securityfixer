@@ -14,14 +14,13 @@ mvn clean compile package
 
 A little awkward.  Thanks to https://stackoverflow.com/questions/40795399/exception-on-invocation-of-java-agent-instrumented-via-bytebuddy I got Maven working.
   
-Note that the intercepter has to be on the bootstrap classpath, so it must be packaged seperately from the agent:
+You can use the attached `run.sh` script.
 
 ```bash
-java -javaagent:agent/target/securityfixer-agent-1.0-SNAPSHOT.jar=bootstrap/target/securityfixer-bootstrap-1.0-SNAPSHOT.jar \
-    -jar example/target/securityfixer-example-1.0-SNAPSHOT.jar
-```
+java -javaagent:agent/target/securityfixer-agent-2.0-SNAPSHOT.jar \
+    -jar example/target/securityfixer-example-2.0-SNAPSHOT.jar
 
-You can use the attached `run.sh` script.
+```
 
 ## Problems
 

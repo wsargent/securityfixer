@@ -12,9 +12,7 @@ mvn clean compile package
 
 ## Running
 
-A little awkward.  Thanks to https://stackoverflow.com/questions/40795399/exception-on-invocation-of-java-agent-instrumented-via-bytebuddy I got Maven working.
-  
-You can use the attached `run.sh` script.
+A little awkward. You can use the attached `run.sh` script.
 
 ```bash
 java -javaagent:agent/target/securityfixer-agent-2.0-SNAPSHOT.jar \
@@ -24,4 +22,6 @@ java -javaagent:agent/target/securityfixer-agent-2.0-SNAPSHOT.jar \
 
 ## Problems
 
-For some reason, the static method override stops working in later versions of ByteBuddy, i.e. 1.4.1 or later.  I have not tracked down why exactly.
+I have this working with Byte Buddy 1.9.0 after some futzing with `@Advice` using the [generated bootstrap approach](https://stackoverflow.com/questions/44747219/byte-buddy-advice-onmethodexit-constructor-retransformation), but the static security manager must be public.
+
+For the purposes of the demo I'm not worried about it.

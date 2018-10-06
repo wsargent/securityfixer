@@ -26,6 +26,7 @@ public class SecurityFixerAgent {
     private SecurityFixerAgent() {
     }
 
+    // From https://stackoverflow.com/questions/44747219/byte-buddy-advice-onmethodexit-constructor-retransformation
     public static void premain(String arg, Instrumentation instrumentation) {
         injectBootstrapClasses(instrumentation);
         new AgentBuilder.Default()

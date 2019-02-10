@@ -10,7 +10,6 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <asm.version>5.0.4</asm.version>
     </properties>
 
     <licenses>
@@ -21,13 +20,6 @@
     </licenses>
 
     <dependencies>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.12</version>
-            <scope>test</scope>
-        </dependency>
-
         <dependency>
             <groupId>com.tersesystems</groupId>
             <artifactId>securityfixer-agent</artifactId>
@@ -40,7 +32,7 @@
         <plugins>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.3</version>
+                <version>3.8.0</version>
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>
@@ -57,39 +49,6 @@
                     </archive>
                 </configuration>
             </plugin>
-            <!--<plugin>-->
-
-                <!--<groupId>org.codehaus.mojo</groupId>-->
-                <!--<artifactId>exec-maven-plugin</artifactId>-->
-                <!--<version>1.4.0</version>-->
-                <!--<executions>-->
-                    <!--<execution>-->
-                        <!--<goals>-->
-                            <!--<goal>exec</goal>-->
-                        <!--</goals>-->
-                    <!--</execution>-->
-                <!--</executions>-->
-                <!--<configuration>-->
-                    <!--<includeProjectDependencies>true</includeProjectDependencies>-->
-                    <!--<includePluginDependencies>true</includePluginDependencies>-->
-
-                    <!--<executable>maven</executable>-->
-                    <!--<mainClass>securityfixer.FixSecurityManagerTest</mainClass>-->
-                    <!--<arguments>-->
-                        <!--<argument>-->
-                            <!-- -javaagent:target/securityfixer-agent-1.0-SNAPSHOT.jar=target/securityfixer-bootstrap-1.0-SNAPSHOT.jar-->
-                        <!--</argument>-->
-                    <!--</arguments>-->
-                <!--</configuration>-->
-                <!--<dependencies>-->
-                    <!--<dependency>-->
-                        <!--<groupId>com.tersesystems.securityfixer</groupId>-->
-                        <!--<artifactId>securityfixer-bootstrap</artifactId>-->
-                        <!--<version>1.0-SNAPSHOT</version>-->
-                        <!--<type>jar</type>-->
-                    <!--</dependency>-->
-                <!--</dependencies>-->
-            <!--</plugin>-->
         </plugins>
     </build>
 
